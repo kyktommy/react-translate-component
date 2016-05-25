@@ -1,11 +1,12 @@
 'use strict';
 
 var React       = require('react');
-var Interpolate = require('react-interpolate-component');
+var ReactNative = require('react-native');
 var translator  = require('counterpart');
 var extend      = require('object-assign');
 
 var PropTypes = React.PropTypes;
+var { Text } = ReactNative;
 
 var translatorType = PropTypes.shape({
   getLocale:        PropTypes.func,
@@ -39,42 +40,42 @@ var Translate = React.createClass({
   },
 
   statics: {
-    textContentComponents: ['title', 'option', 'textarea']
+    textContentComponents: ['Text']
   },
 
-  getDefaultProps: function() {
-    return { component: 'span' };
+  getDefaultProps() {
+    return { component: 'Text' };
   },
 
-  getInitialState: function() {
+  getInitialState() {
     return { locale: this.getTranslator().getLocale() };
   },
 
-  getTranslator: function() {
+  getTranslator() {
     return this.context.translator || translator;
   },
 
-  componentDidMount: function() {
+  componentDidMount() {
     if (!this.props.locale) {
       this.getTranslator().onLocaleChange(this.localeChanged);
     }
   },
 
-  componentWillUnmount: function() {
+  componentWillUnmount() {
     if (!this.props.locale) {
       this.getTranslator().offLocaleChange(this.localeChanged);
     }
   },
 
-  localeChanged: function(newLocale) {
+  localeChanged(newLocale) {
     this.setState({ locale: newLocale });
   },
 
-  render: function() {
+  render() {
     var translator  = this.getTranslator();
     var textContent = Translate.textContentComponents.indexOf(this.props.component) > -1;
     var interpolate = textContent || this.props.unsafe === true;
-    var props       = extend({ locale: this.state.locale }, this.props, { interpolate: interpolate });
+    var props       = { locale: this.state.locale, ...this.props, interpolate: interpolate };
 
     if (props.attributes) {
       for (var attribute in props.attributes) {
@@ -89,13 +90,12 @@ var Translate = React.createClass({
     if (props.content) {
       var translation = translator.translate(props.content, props);
 
-      delete props.content;
       delete props.locale;
       delete props.scope;
       delete props.children;
       delete props.interpolate;
 
-      return React.createElement(Interpolate, props, translation);
+      return <Text {...props}>{translation}</Text>
     } else {
       delete props.locale;
       delete props.scope;
